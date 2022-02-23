@@ -1,0 +1,6 @@
+WeatherApp/.vs/
+WeatherApp/obj/
+WeatherApp/bin/
+WeatherAppUnitTests/obj/
+WeatherAppUnitTests/bin/
+*.dll

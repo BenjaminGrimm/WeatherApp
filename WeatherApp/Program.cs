@@ -1,5 +1,5 @@
 using Microsoft.EntityFrameworkCore;
-using WeatherApp;
+using WeatherApp.Extensions;
 using WeatherApp.BusinessLogic;
 using WeatherApp.Data;
 
@@ -11,12 +11,14 @@ builder.Services.AddControllers();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddScoped<IWeatherLogic, WeatherLogic>();
 builder.Services.AddDbContext<IWeatherDbContext, WeatherDbContext>(options => options.UseInMemoryDatabase("InMemoryTestDb")); ;
+builder.Services.AddScoped<IWeatherRepository, WeatherRepository>();
+builder.Services.AddScoped<IWeatherLogic, WeatherLogic>();
 
 
 var app = builder.Build();
 
+app.SeedWeatherData();
 
 // Configure the HTTP request pipeline.
 if (app.Environment.IsDevelopment())

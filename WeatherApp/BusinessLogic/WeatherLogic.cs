@@ -5,23 +5,22 @@ namespace WeatherApp.BusinessLogic
 {
     public class WeatherLogic : IWeatherLogic
     {
-        private readonly IWeatherDbContext _context;
+        private readonly IWeatherRepository weatherRepository;
 
-        public WeatherLogic(IWeatherDbContext context)
+        public WeatherLogic(IWeatherRepository weatherRepository)
         {
-            _context = context;
+            this.weatherRepository = weatherRepository;
         }
 
         public IEnumerable<WeatherRecord> CountryOverview(string country)
         {
             var locations = GetCountryLocations(country);
-            return _context.WeatherRecords.Where(w => locations.Contains(w.Location))
+            return weatherRepository.WeatherRecords.Where(w => locations.Contains(w.Location))
                 .GroupBy(w => w.Location.Name)
                 .Select(g => g.Where(w => w.Time <= DateTimeOffset.Now)
                                 .OrderByDescending(w => w.Time)
                                 .FirstOrDefault()
                 )!;
-
         }
 
         public WeatherRecord WeatherForLocation(string country, string location)
@@ -52,7 +51,7 @@ namespace WeatherApp.BusinessLogic
         private WeatherRecord WeatherAtTime(string countryName, string locationName, DateTimeOffset time)
         {
             var location = GetLocation(countryName, locationName);
-            var weatherRecord =  _context.WeatherRecords.Where(w => w.Location == location)
+            var weatherRecord = weatherRepository.WeatherRecords.Where(w => w.Location == location)
                 .Where(w => w.Time <= time)
                 .OrderByDescending(w => w.Time)
                 .FirstOrDefault();
@@ -69,12 +68,12 @@ namespace WeatherApp.BusinessLogic
 
         private Location GetLocation(string countryName, string locationName)
         {
-            var country = _context.Countries.FirstOrDefault(c => c.Name.Equals(countryName, StringComparison.OrdinalIgnoreCase));
+            var country = weatherRepository.Countries.FirstOrDefault(c => c.Name.Equals(countryName, StringComparison.OrdinalIgnoreCase));
             if(null == country) {
                 throw new CountryNotFoundException();
             }
 
-            var location = _context.Locations.FirstOrDefault(l => l.Name.Equals(locationName) && l.Country == country);
+            var location = weatherRepository.Locations.FirstOrDefault(l => l.Name.Equals(locationName, StringComparison.OrdinalIgnoreCase) && l.Country == country);
             if (null == location)
             {
                 throw new LocationNotFoundException();
@@ -84,12 +83,12 @@ namespace WeatherApp.BusinessLogic
 
         private IEnumerable<Location> GetCountryLocations(string countryName)
         {
-            var country = _context.Countries.FirstOrDefault(c => c.Name.Equals(countryName, StringComparison.OrdinalIgnoreCase));
+            var country = weatherRepository.Countries.FirstOrDefault(c => c.Name.Equals(countryName, StringComparison.OrdinalIgnoreCase));
             if (null == country)
             {
                 throw new CountryNotFoundException();
             }
-            var location = _context.Locations.Where(l => l.Country == country);
+            var location = weatherRepository.Locations.Where(l => l.Country == country);
 
             return location;
         }

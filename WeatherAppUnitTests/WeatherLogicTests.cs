@@ -25,12 +25,13 @@ namespace WeatherAppUnitTests
                 Country = germany,
                 Name = "Erlangen"
             };
-            var nuernberg = new Location()
+            var nuremberg = new Location()
             {
                 Country = germany,
-                Name = "Nuernberg"
+                Name = "Nuremberg"
             };
 
+            var mockRecords = new List<WeatherRecord>();
             for (int i = 0; i < 100; i++)
             {
                 var r1 = new WeatherRecord()
@@ -40,27 +41,39 @@ namespace WeatherAppUnitTests
                     Temperature = 10 + (i % 20),
                     Time = DateTimeOffset.Now.AddHours(i - 1)
                 };
+                mockRecords.Add(r1);
 
                 var r2 = new WeatherRecord()
                 {
-                    Location = nuernberg,
+                    Location = nuremberg,
                     Summary = "Cloudy",
                     Temperature = 7 + (i % 15),
                     Time = DateTimeOffset.Now.AddHours(i - 1)
                 };
+                mockRecords.Add(r2);
             }
 
 
-            var context = Mock.Of<IWeatherDbContext>();
+            var context = Mock.Of<IWeatherRepository>();
             Mock.Get(context)
                 .Setup(c => c.Countries)
-                .Returns(new List<Country> { germany }); //TODO Does not work this way. The DBSet needs to be mocked too.
+                .Returns(new List<Country> { germany });
+            Mock.Get(context)
+                .Setup(c => c.Locations)
+                .Returns(new List<Location> { erlangen, nuremberg });
+
+            Mock.Get(context)
+                .Setup(c => c.WeatherRecords)
+                .Returns(mockRecords);
 
             var bussinesLogic = new WeatherLogic(context);
 
             var currentWeather = bussinesLogic.WeatherForLocation("germany", "erlangen");
 
             Assert.IsNotNull(currentWeather);
+            Assert.AreEqual(currentWeather.Location, erlangen);
+            Assert.AreEqual(currentWeather.Location.Country, germany);
+            Assert.AreEqual(currentWeather.Summary, "Sunny");
 
         }
 
